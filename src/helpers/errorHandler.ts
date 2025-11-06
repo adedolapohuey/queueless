@@ -6,7 +6,7 @@ import { ResponseCodes } from "./responseCodes";
 export class AppError extends Error {
   public readonly response: Response;
 
-  constructor(message: string, statusCode = 500, isOperational = true) {
+  constructor(message: string, statusCode = 500) {
     super(message);
     this.response = {
       status: statusCode,

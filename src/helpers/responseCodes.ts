@@ -1,5 +1,3 @@
-import { Response } from "../interfaces/indexInterface";
-
 export enum ResponseCodes {
   SUCCESS = 200,
   CREATED = 201,
