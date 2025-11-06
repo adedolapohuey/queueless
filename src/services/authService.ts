@@ -1,17 +1,18 @@
-import {
-  RegistrationData,
-  RegistrationResponse,
-} from "../interfaces/authInterface";
+import { AppError } from "../helpers/errorHandler";
+import { ResponseCodes } from "../helpers/responseCodes";
+import { ResponseHandler } from "../helpers/responseHandler";
+import { RegistrationData } from "../interfaces/authInterface";
+import { Response } from "../interfaces/indexInterface";
 
 const registrationService = async (
   registrationPayload: RegistrationData
-): Promise<RegistrationResponse> => {
+): Promise<Response> => {
   // Registration logic here
   try {
-    console.log("Registering user:", registrationPayload);
-    return { status: 201, result: "User registered successfully" };
-  } catch (error) {
-    return { status: 500, result: "Registration failed" };
+    return ResponseHandler.created("User registered successfully");
+  } catch (error: any) {
+    console.error("Registration error:", error.response);
+    return error.response;
   }
 };
 

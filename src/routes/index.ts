@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import authRouter from "./authRoutes";
 const router = require("express").Router();
 
-// router.use("/api/v1");
 const routes = "/api/v1";
 router.use(routes, authRouter);
 
