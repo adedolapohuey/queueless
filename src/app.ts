@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import compression from "compression";
 import helmet from "helmet";
 import router from "./routes";
+import { errorHandler } from "./helpers/errorHandler";
 
 dotenv.config();
 
@@ -18,6 +19,6 @@ app.use(helmet());
 app.use(router);
 
 // Global error handler
-// app.use(errorHandler);
+app.use(errorHandler);
 
 export default app;

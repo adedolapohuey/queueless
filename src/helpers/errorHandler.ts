@@ -1,40 +1,18 @@
-import { stat } from "fs";
-import { Response } from "../interfaces/indexInterface";
-import { ResponseCodes } from "./responseCodes";
+// src/middlewares/errorHandler.ts
+import { Request, Response, NextFunction } from "express";
+import { AppError } from "./appError";
 
-// src/utils/AppError.ts
-export class AppError extends Error {
-  public readonly response: Response;
+export const errorHandler = (
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  // Normalize to AppError
+  const error = err instanceof AppError ? err : new AppError(err.message, 500);
 
-  constructor(message: string, statusCode = 500) {
-    super(message);
-    this.response = {
-      status: statusCode,
-      result: {
-        status: statusCode,
-        message,
-      },
-    };
-    Error.captureStackTrace(this, this.constructor);
-  }
+  // Log all errors (can plug into Winston, Sentry, etc.)
+  console.error(`[Error] ${error.message}`);
 
-  static badRequest(message = "Bad Request") {
-    return new AppError(message, ResponseCodes.BAD_REQUEST);
-  }
-
-  static unauthorized(message = "Unauthorized") {
-    return new AppError(message, ResponseCodes.UNAUTHORIZED);
-  }
-
-  static forbidden(message = "Forbidden") {
-    return new AppError(message, ResponseCodes.FORBIDDEN);
-  }
-
-  static notFound(message = "Not Found") {
-    return new AppError(message, ResponseCodes.NOT_FOUND);
-  }
-
-  static internal(message = "Internal Server Error") {
-    return new AppError(message, ResponseCodes.INTERNAL_SERVER_ERROR);
-  }
-}
+  res.status(error.response.status).json(error.response);
+};

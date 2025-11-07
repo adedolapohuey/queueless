@@ -1,4 +1,4 @@
-import { AppError } from "../helpers/errorHandler";
+import { AppError } from "../helpers/appError";
 import { ResponseCodes } from "../helpers/responseCodes";
 import { ResponseHandler } from "../helpers/responseHandler";
 import { RegistrationData } from "../interfaces/authInterface";

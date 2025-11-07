@@ -4,5 +4,6 @@ export interface Response {
     status: number;
     message: string;
     data?: Record<string, any>;
+    errors?: Record<string, string>;
   };
 }
