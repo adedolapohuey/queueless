@@ -47,7 +47,6 @@ const registrationService = async (
     // generate token
     const token = generateToken(
       {
-        id: createUser.id,
         email: createUser.email,
         username: createUser.username,
       },
@@ -88,7 +87,6 @@ const loginService = async (
     // generate token
     const token = generateToken(
       {
-        id: userExists.id,
         email: userExists.email,
         username: userExists.username,
       },
