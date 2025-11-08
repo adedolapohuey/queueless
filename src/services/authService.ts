@@ -18,7 +18,7 @@ const registrationService = async (
       registrationPayload;
 
     const userExists = await User.findOne({
-      where: { [Op.or]: [{ email }, { username }] },
+      where: { [Op.or]: [{ email }, { username }], isDeleted: false },
       attributes: ["id"],
     });
 
@@ -70,7 +70,7 @@ const loginService = async (
   try {
     const { username, password } = payload;
     const userExists = await User.findOne({
-      where: { username },
+      where: { username, isDeleted: false },
       attributes: {
         exclude: ["isDeleted", "createdAt", "updatedAt"],
       },
