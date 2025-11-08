@@ -6,6 +6,7 @@ export interface RegistrationData {
   organization: string;
   password: string;
 }
+
 export interface FullRegistrationData extends RegistrationData {
   id: number;
   isVerified: boolean;

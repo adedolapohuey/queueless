@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registrationService } from "../services/authService";
+import { loginService, registrationService } from "../services/authService";
 import { RegistrationData } from "../interfaces/authInterface";
 
 const registerController = async (req: Request, res: Response) => {
@@ -8,8 +8,10 @@ const registerController = async (req: Request, res: Response) => {
   return res.status(status).json(result);
 };
 
-const loginController = (req: Request, res: Response) => {
-  res.status(200).json({ message: "Auth controller response" });
+const loginController = async (req: Request, res: Response) => {
+  const data = req.body as Pick<RegistrationData, "username" | "password">;
+  const { status, result } = await loginService(data);
+  return res.status(status).json(result);
 };
 
 export { registerController, loginController };
