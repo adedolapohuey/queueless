@@ -1,12 +1,15 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../config/database";
-import { RegistrationData } from "../interfaces/authInterface";
+import { FullRegistrationData } from "../interfaces/authInterface";
 
-type UserCreationAttributes = Optional<RegistrationData, "id">;
+type UserCreationAttributes = Optional<
+  FullRegistrationData,
+  "id" | "isVerified" | "isDeleted"
+>;
 
 export class User
-  extends Model<RegistrationData, UserCreationAttributes>
-  implements RegistrationData
+  extends Model<FullRegistrationData, UserCreationAttributes>
+  implements FullRegistrationData
 {
   public id!: number;
   public username!: string;
@@ -15,6 +18,8 @@ export class User
   public email!: string;
   public organization!: string;
   public password!: string;
+  public isDeleted!: boolean;
+  public isVerified!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -41,6 +46,14 @@ User.init(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    isDeleted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
     organization: DataTypes.STRING,
     password: {

@@ -1,4 +1,3 @@
-import { Response } from "../interfaces/indexInterface";
 import { ResponseCodes } from "./responseCodes";
 
 export class ResponseHandler {
@@ -6,7 +5,7 @@ export class ResponseHandler {
   public readonly result: {
     status: number;
     message: string;
-    data?: any;
+    data?: Record<string, any>;
   };
 
   constructor(message: string, statusCode = 500, data = {}) {
@@ -18,11 +17,11 @@ export class ResponseHandler {
     };
   }
 
-  static success(message = "Success") {
-    return new ResponseHandler(message, ResponseCodes.SUCCESS);
+  static success(message = "Success", data = {}) {
+    return new ResponseHandler(message, ResponseCodes.SUCCESS, data);
   }
 
-  static created(message = "Created") {
-    return new ResponseHandler(message, ResponseCodes.CREATED);
+  static created(message = "Created", data = {}) {
+    return new ResponseHandler(message, ResponseCodes.CREATED, data);
   }
 }
