@@ -1,4 +1,4 @@
-export interface Response {
+export type Response = {
   status: number;
   result: {
     status: number;

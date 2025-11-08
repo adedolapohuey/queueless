@@ -4,7 +4,8 @@ import { ResponseCodes } from "./responseCodes";
 
 // src/utils/AppError.ts
 export class AppError extends Error {
-  public readonly response: Response;
+  public readonly status: Response["status"];
+  public readonly result: Response["result"];
 
   constructor(
     message: string,
@@ -12,15 +13,13 @@ export class AppError extends Error {
     errors?: Record<string, string>
   ) {
     super(message);
-    this.response = {
-      status: statusCode,
-      result: {
+    (this.status = statusCode),
+      (this.result = {
         status: statusCode,
         message,
         errors,
-      },
-    };
-    Error.captureStackTrace(this, this.constructor);
+      }),
+      Error.captureStackTrace(this, this.constructor);
   }
 
   static badRequest(message = "Bad Request") {
