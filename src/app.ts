@@ -10,13 +10,12 @@ dotenv.config();
 
 const app: Application = express();
 
-app.use(cors());
-
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(compression());
 app.use(helmet());
+app.use(cors());
 
 // Routes
 app.use(router);
