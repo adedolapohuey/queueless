@@ -14,5 +14,5 @@ export const errorHandler = (
   // Log all errors (can plug into Winston, Sentry, etc.)
   console.error(`[Error] ${error.message}`);
 
-  res.status(error.response.status).json(error.response);
+  res.status(error.status).json(error);
 };
