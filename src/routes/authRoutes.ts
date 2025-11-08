@@ -4,10 +4,14 @@ import {
   registerController,
 } from "../controllers/authController";
 import { validateRequest } from "../validators/validateRequest";
-import { createUserSchema } from "../validators/userSchema";
+import { createUserSchema, loginUserSchema } from "../validators/userSchema";
 const authRouter = Router();
 
-authRouter.post("/register", validateRequest(createUserSchema), registerController);
-authRouter.post("/login", loginController);
+authRouter.post(
+  "/register",
+  validateRequest(createUserSchema),
+  registerController
+);
+authRouter.post("/login", validateRequest(loginUserSchema), loginController);
 
 export default authRouter;

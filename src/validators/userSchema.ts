@@ -43,5 +43,16 @@ export const createUserSchema = z.object({
     .transform((val) => sanitizeEmail(val)),
 });
 
+export const loginUserSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .transform((val) => validator.escape(val)), // escape HTML
+  password: z
+    .string()
+    .trim()
+    .transform((val) => validator.escape(val)), // escape HTML
+});
+
 // Type inference for TS
 export type CreateUserInput = z.infer<typeof createUserSchema>;
