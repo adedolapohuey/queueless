@@ -3,11 +3,14 @@ import dotenv from "dotenv";
 import compression from "compression";
 import helmet from "helmet";
 import router from "./routes";
+import cors from "cors";
 import { errorHandler } from "./helpers/errorHandler";
 
 dotenv.config();
 
 const app: Application = express();
+
+app.use(cors());
 
 // Middleware
 app.use(express.json());
