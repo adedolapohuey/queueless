@@ -1,6 +1,6 @@
 // src/utils/sendVerificationEmail.ts
 import sgMail from "@sendgrid/mail";
-import { renderTemplate } from "./htmlTemplates/renderTemplate";
+import { renderTemplate } from "./renderTemplate";
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
