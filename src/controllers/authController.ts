@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
-import { loginService, registrationService } from "../services/authService";
+import {
+  loginService,
+  registrationService,
+  verifyUserRegistration,
+} from "../services/authService";
 import { RegistrationData } from "../interfaces/authInterface";
 
 const registerController = async (req: Request, res: Response) => {
@@ -14,4 +18,17 @@ const loginController = async (req: Request, res: Response) => {
   return res.status(status).json(result);
 };
 
-export { registerController, loginController };
+const verifyUserRegistrationController = async (
+  req: Request,
+  res: Response
+) => {
+  const data = req.body as { username: string; code: string };
+  const { status, result } = await verifyUserRegistration(data);
+  return res.status(status).json(result);
+};
+
+export {
+  registerController,
+  loginController,
+  verifyUserRegistrationController,
+};

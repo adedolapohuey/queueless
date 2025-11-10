@@ -2,7 +2,10 @@ import { AppError } from "../helpers/appError";
 import { hashPassword, comparePassword } from "../helpers/hash";
 import { ResponseHandler } from "../helpers/responseHandler";
 import { generateToken } from "../helpers/tokenHandler";
-import { RegistrationData } from "../interfaces/authInterface";
+import {
+  RegistrationData,
+  VerificationData,
+} from "../interfaces/authInterface";
 import { Response } from "../interfaces/indexInterface";
 import { User } from "../models/user.model";
 import { Op } from "sequelize";
@@ -109,6 +112,52 @@ const loginService = async (
   }
 };
 
+const verifyUserRegistration = async (
+  payload: VerificationData
+): Promise<Response> => {
+  // Verification logic here
+  const { username, code } = payload;
+
+  try {
+    const now = new Date();
+    const existingCode = await getCode({
+      user: username,
+      expiresAt: { [Op.gt]: now },
+      code,
+      isDeleted: false,
+    });
+
+    console.log("Existing code found:", existingCode);
+
+    if (!existingCode) {
+      return AppError.badRequest("Invalid or expired code");
+    }
+
+    await VerificationCode.update(
+      { isDeleted: true },
+      {
+        where: {
+          user: username,
+          code,
+        },
+      }
+    );
+
+    await User.update(
+      { isVerified: true },
+      {
+        where: {
+          username,
+        },
+      }
+    );
+
+    return ResponseHandler.success("Code verified successfully");
+  } catch (error: any) {
+    return AppError.internal(error.message);
+  }
+};
+
 const fetchValidCode = async () => {
   // Check code validity logic here
   const code = generateOtp();
@@ -143,4 +192,4 @@ const getCode = async (
   return code;
 };
 
-export { registrationService, loginService };
+export { registrationService, loginService, verifyUserRegistration };

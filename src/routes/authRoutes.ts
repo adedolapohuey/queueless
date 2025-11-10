@@ -2,9 +2,14 @@ import { Router } from "express";
 import {
   loginController,
   registerController,
+  verifyUserRegistrationController,
 } from "../controllers/authController";
 import { validateRequest } from "../validators/validateRequest";
-import { createUserSchema, loginUserSchema } from "../validators/userSchema";
+import {
+  createUserSchema,
+  loginUserSchema,
+  verifyUserSchema,
+} from "../validators/userSchema";
 const authRouter = Router();
 
 authRouter.post(
@@ -13,5 +18,10 @@ authRouter.post(
   registerController
 );
 authRouter.post("/login", validateRequest(loginUserSchema), loginController);
+authRouter.post(
+  "/verify-user",
+  validateRequest(verifyUserSchema),
+  verifyUserRegistrationController
+);
 
 export default authRouter;

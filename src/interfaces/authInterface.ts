@@ -12,3 +12,13 @@ export interface FullRegistrationData extends RegistrationData {
   isVerified: boolean;
   isDeleted: boolean;
 }
+
+export interface LoginData {
+  username: string;
+  password: string;
+}
+
+export interface VerificationData {
+  username: string;
+  code: string;
+}
