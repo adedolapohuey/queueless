@@ -64,8 +64,18 @@ const registrationService = async (
       variables: { code, name: firstName + " " + lastName },
     });
 
+    // generate token
+    const token = generateToken(
+      {
+        email: newUser.email,
+        username: newUser.username,
+      },
+      "1d"
+    );
+
     return ResponseHandler.created("User registered successfully", {
       ...userSerializer(createUser),
+      token,
     });
   } catch (error: any) {
     return AppError.internal(error.message);
