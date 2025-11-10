@@ -8,6 +8,8 @@ import { User } from "../models/user.model";
 import { Op } from "sequelize";
 import { userSerializer } from "../serializers/user.serializer";
 import { sendVerificationEmail } from "../helpers/sendMail";
+import { generateOtp } from "../helpers";
+import { VerificationCode } from "../models/verificationcode.model";
 
 const registrationService = async (
   registrationPayload: RegistrationData
@@ -23,7 +25,6 @@ const registrationService = async (
       attributes: ["id"],
     });
 
-    console.log("userExists:", userExists);
     if (userExists) {
       return AppError.badRequest("User already exists");
     }
@@ -41,15 +42,17 @@ const registrationService = async (
       password: hashedPassword,
       organization,
     };
-
     const createUser = await User.create(newUser);
-    console.log("User registered successfully:", createUser);
 
     // send verification email logic can be added here
-    const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+    const code = await fetchValidCode(); // 6-digit OTP
 
-    // Here you would typically save the OTP to the database associated with the user
-    // and send it via email using a mail service.
+    // save code to the db
+    await VerificationCode.create({
+      user: newUser.username,
+      code,
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
+    });
 
     await sendVerificationEmail({
       to: cleanEmail,
@@ -104,6 +107,40 @@ const loginService = async (
   } catch (error: any) {
     return AppError.internal(error.message);
   }
+};
+
+const fetchValidCode = async () => {
+  // Check code validity logic here
+  const code = generateOtp();
+  const now = new Date();
+
+  const isCodeAvailable = await getCode({
+    expiresAt: { [Op.gt]: now },
+    code,
+    isDeleted: false,
+  });
+
+  if (isCodeAvailable) {
+    fetchValidCode();
+  }
+
+  return code;
+};
+
+const getCode = async (
+  where: any
+): Promise<{
+  code: string;
+  expiresAt: Date;
+  user?: string;
+} | null> => {
+  // Fetch code logic here
+  const code = await VerificationCode.findOne({
+    where,
+    attributes: ["code", "expiresAt", "user"],
+  });
+
+  return code;
 };
 
 export { registrationService, loginService };
