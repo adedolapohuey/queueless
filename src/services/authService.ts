@@ -152,7 +152,7 @@ const verifyUserRegistration = async (
       }
     );
 
-    return ResponseHandler.success("Code verified successfully");
+    return ResponseHandler.success("User verified successfully");
   } catch (error: any) {
     return AppError.internal(error.message);
   }
