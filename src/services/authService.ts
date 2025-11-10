@@ -7,6 +7,7 @@ import { Response } from "../interfaces/indexInterface";
 import { User } from "../models/user.model";
 import { Op } from "sequelize";
 import { userSerializer } from "../serializers/user.serializer";
+import { sendVerificationEmail } from "../helpers/sendMail";
 
 const registrationService = async (
   registrationPayload: RegistrationData
@@ -44,18 +45,21 @@ const registrationService = async (
     const createUser = await User.create(newUser);
     console.log("User registered successfully:", createUser);
 
-    // generate token
-    const token = generateToken(
-      {
-        email: createUser.email,
-        username: createUser.username,
-      },
-      "1d"
-    );
+    // send verification email logic can be added here
+    const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+
+    // Here you would typically save the OTP to the database associated with the user
+    // and send it via email using a mail service.
+
+    await sendVerificationEmail({
+      to: cleanEmail,
+      subject: "Verify your account",
+      htmlTemplate: "registration.template",
+      variables: { code, name: firstName + " " + lastName },
+    });
 
     return ResponseHandler.created("User registered successfully", {
       ...userSerializer(createUser),
-      token,
     });
   } catch (error: any) {
     return AppError.internal(error.message);
