@@ -76,6 +76,7 @@ const loginService = async (
   payload: Pick<RegistrationData, "username" | "password">
 ) => {
   // Login logic here
+  console.log("Login user with data:", payload);
   try {
     const { username, password } = payload;
     const userExists = await User.findOne({
@@ -116,6 +117,7 @@ const verifyUserRegistration = async (
   payload: VerificationData
 ): Promise<Response> => {
   // Verification logic here
+  console.log("verifyUserRegistration user with data:", payload);
   const { username, code } = payload;
 
   try {
@@ -126,8 +128,6 @@ const verifyUserRegistration = async (
       code,
       isDeleted: false,
     });
-
-    console.log("Existing code found:", existingCode);
 
     if (!existingCode) {
       return AppError.badRequest("Invalid or expired code");
