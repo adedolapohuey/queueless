@@ -7,6 +7,7 @@ export function userSerializer(user: User) {
     firstName: user.firstName,
     lastName: user.lastName,
     email: user.email,
+    role: user.role,
     organization: user.organization,
     isVerified: user.isVerified,
   };

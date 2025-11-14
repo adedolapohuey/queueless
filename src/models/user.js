@@ -30,8 +30,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       isVerified: {
-        type: Sequelize.BOOLEAN,
+        type: DataTypes.BOOLEAN,
         defaultValue: false,
+      },
+      role: {
+        type: DataTypes.STRING,
+        defaultValue: "user",
       },
       isDeleted: {
         type: DataTypes.Boolean,

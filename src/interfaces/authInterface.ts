@@ -9,6 +9,7 @@ export interface RegistrationData {
 
 export interface FullRegistrationData extends RegistrationData {
   id: number;
+  role: Role;
   isVerified: boolean;
   isDeleted: boolean;
 }
@@ -26,4 +27,9 @@ export enum otpActionTypes {
   EMAIL_VERIFICATION = "email_verification",
   FORGOT_PASSWORD = "forgot_password",
   DEFAULT = "",
+}
+
+export enum Role {
+  USER = "user",
+  ADMIN = "admin",
 }

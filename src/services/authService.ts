@@ -5,6 +5,7 @@ import { generateToken } from "../helpers/tokenHandler";
 import {
   otpActionTypes,
   RegistrationData,
+  Role,
   VerificationData,
 } from "../interfaces/authInterface";
 import { Response } from "../interfaces/indexInterface";
@@ -43,6 +44,7 @@ const registrationService = async (
       email: cleanEmail,
       firstName,
       lastName,
+      role: Role.USER,
       password: hashedPassword,
       organization,
     };

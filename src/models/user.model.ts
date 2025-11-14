@@ -1,6 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../config/database";
-import { FullRegistrationData } from "../interfaces/authInterface";
+import { FullRegistrationData, Role } from "../interfaces/authInterface";
 
 type UserCreationAttributes = Optional<
   FullRegistrationData,
@@ -17,6 +17,7 @@ export class User
   public lastName!: string;
   public email!: string;
   public organization!: string;
+  public role!: Role;
   public password!: string;
   public isDeleted!: boolean;
   public isVerified!: boolean;
@@ -50,6 +51,10 @@ User.init(
     isVerified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+    },
+    role: {
+      type: DataTypes.STRING,
+      defaultValue: "user",
     },
     isDeleted: {
       type: DataTypes.BOOLEAN,
