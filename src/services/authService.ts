@@ -3,6 +3,7 @@ import { hashPassword, comparePassword } from "../helpers/hash";
 import { ResponseHandler } from "../helpers/responseHandler";
 import { generateToken } from "../helpers/tokenHandler";
 import {
+  otpActionTypes,
   RegistrationData,
   VerificationData,
 } from "../interfaces/authInterface";
@@ -52,8 +53,9 @@ const registrationService = async (
 
     // save code to the db
     await VerificationCode.create({
-      user: newUser.username,
+      user: createUser.id.toString(),
       code,
+      action: otpActionTypes.EMAIL_VERIFICATION,
       expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
     });
 
@@ -100,6 +102,10 @@ const loginService = async (
       return AppError.unauthorized("Invalid credentials");
     }
 
+    if (!userExists.isVerified) {
+      return AppError.unauthorized("Kindly verify your account to proceed");
+    }
+
     const verifyPassword = await comparePassword(password, userExists.password);
     if (!verifyPassword) {
       return AppError.unauthorized("Invalid credentials");
@@ -119,21 +125,18 @@ const loginService = async (
       token,
     });
   } catch (error: any) {
-    return AppError.internal(error.message);
+    return AppError.internal();
   }
 };
 
-const verifyUserRegistration = async (
-  payload: VerificationData
-): Promise<Response> => {
+const verifyCode = async (payload: { code: string }): Promise<Response> => {
   // Verification logic here
-  console.log("verifyUserRegistration user with data:", payload);
-  const { username, code } = payload;
+  console.log("verify code with data:", payload);
+  const { code } = payload;
 
   try {
     const now = new Date();
     const existingCode = await getCode({
-      user: username,
       expiresAt: { [Op.gt]: now },
       code,
       isDeleted: false,
@@ -143,31 +146,115 @@ const verifyUserRegistration = async (
       return AppError.badRequest("Invalid or expired code");
     }
 
+    // expire the code
     await VerificationCode.update(
       { isDeleted: true },
       {
         where: {
-          user: username,
+          user: existingCode.user,
           code,
         },
       }
     );
 
-    await User.update(
-      { isVerified: true },
-      {
-        where: {
-          username,
-        },
-      }
-    );
+    switch (existingCode.action) {
+      case otpActionTypes.EMAIL_VERIFICATION:
+        return await verifyUserRegistration({
+          user: Number(existingCode.user),
+        });
+      case otpActionTypes.FORGOT_PASSWORD:
+        const userDetails = await User.findOne({
+          where: { id: existingCode.user, isDeleted: false },
+          attributes: ["email"],
+        });
 
-    return ResponseHandler.success("User verified successfully");
+        return ResponseHandler.success("OTP verified successfully", {
+          userEmail: userDetails!.email,
+        });
+      default:
+        break;
+    }
+
+    return ResponseHandler.success("OTP verified successfully");
+  } catch (error: any) {
+    return AppError.internal();
+  }
+};
+
+const initiateForgotPasswordService = async (
+  payload: Pick<RegistrationData, "email">
+) => {
+  // Forgot password logic here
+  console.log("initiate forgot password with data:", payload);
+  const { email } = payload;
+
+  try {
+    const userExists = await User.findOne({
+      where: { email, isDeleted: false },
+      attributes: ["id", "firstName", "lastName"],
+    });
+
+    if (!userExists) {
+      return AppError.notFound("User with this email does not exist");
+    }
+
+    const code = await fetchValidCode(); // 6-digit OTP
+
+    // save code to the db
+    await VerificationCode.create({
+      user: userExists.id.toString(),
+      code,
+      action: otpActionTypes.FORGOT_PASSWORD,
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
+    });
+
+    await sendVerificationEmail({
+      to: email,
+      subject: "Reset your password",
+      htmlTemplate: "forgotPassword.template",
+      variables: {
+        code,
+        name: userExists.firstName + " " + userExists.lastName,
+      },
+    });
+
+    return ResponseHandler.success(
+      "Password reset code sent to your email successfully"
+    );
   } catch (error: any) {
     return AppError.internal(error.message);
   }
 };
 
+const resetPasswordService = async (
+  payload: Pick<RegistrationData, "email" | "password">
+) => {
+  // Reset password logic here
+  console.log("reset password with data:", payload);
+  const { email, password } = payload;
+
+  const hashedPassword = await hashPassword(password);
+  try {
+    const updatePassword = await User.update(
+      { password: hashedPassword },
+      {
+        where: {
+          email,
+        },
+      }
+    );
+
+    if (updatePassword[0] === 0) {
+      return AppError.notFound("User with this email does not exist");
+    }
+
+    return ResponseHandler.success("Password reset successfully");
+  } catch (error: any) {
+    return AppError.internal();
+  }
+};
+
+// internal functions
 const fetchValidCode = async () => {
   // Check code validity logic here
   const code = generateOtp();
@@ -190,16 +277,46 @@ const getCode = async (
   where: any
 ): Promise<{
   code: string;
+  action: otpActionTypes;
   expiresAt: Date;
-  user?: string;
+  user: string;
 } | null> => {
   // Fetch code logic here
   const code = await VerificationCode.findOne({
     where,
-    attributes: ["code", "expiresAt", "user"],
+    attributes: ["code", "action", "expiresAt", "user"],
   });
 
   return code;
 };
 
-export { registrationService, loginService, verifyUserRegistration };
+const verifyUserRegistration = async (
+  payload: VerificationData
+): Promise<Response> => {
+  // Verification logic here
+  console.log("verifyUserRegistration user with data:", payload);
+  const { user } = payload;
+
+  try {
+    await User.update(
+      { isVerified: true },
+      {
+        where: {
+          id: user,
+        },
+      }
+    );
+
+    return ResponseHandler.success("User verified successfully");
+  } catch (error: any) {
+    return AppError.internal();
+  }
+};
+
+export {
+  registrationService,
+  loginService,
+  verifyCode,
+  initiateForgotPasswordService,
+  resetPasswordService,
+};

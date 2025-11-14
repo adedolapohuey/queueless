@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
 import {
+  initiateForgotPasswordService,
   loginService,
   registrationService,
-  verifyUserRegistration,
+  resetPasswordService,
+  verifyCode,
 } from "../services/authService";
 import { RegistrationData } from "../interfaces/authInterface";
 
@@ -18,17 +20,31 @@ const loginController = async (req: Request, res: Response) => {
   return res.status(status).json(result);
 };
 
-const verifyUserRegistrationController = async (
+const verifyCodeController = async (req: Request, res: Response) => {
+  const data = req.body as { username: string; code: string };
+  const { status, result } = await verifyCode(data);
+  return res.status(status).json(result);
+};
+
+const initiateForgotPasswordController = async (
   req: Request,
   res: Response
 ) => {
-  const data = req.body as { username: string; code: string };
-  const { status, result } = await verifyUserRegistration(data);
+  const data = req.body as { email: string };
+  const { status, result } = await initiateForgotPasswordService(data);
+  return res.status(status).json(result);
+};
+
+const resetPasswordController = async (req: Request, res: Response) => {
+  const data = req.body as { email: string; password: string };
+  const { status, result } = await resetPasswordService(data);
   return res.status(status).json(result);
 };
 
 export {
   registerController,
   loginController,
-  verifyUserRegistrationController,
+  verifyCodeController,
+  initiateForgotPasswordController,
+  resetPasswordController,
 };

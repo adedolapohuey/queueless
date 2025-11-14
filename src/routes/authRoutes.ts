@@ -1,13 +1,17 @@
 import { Router } from "express";
 import {
+  initiateForgotPasswordController,
   loginController,
   registerController,
-  verifyUserRegistrationController,
+  resetPasswordController,
+  verifyCodeController,
 } from "../controllers/authController";
 import { validateRequest } from "../validators/validateRequest";
 import {
   createUserSchema,
+  initiateForgotPasswordSchema,
   loginUserSchema,
+  resetPasswordSchema,
   verifyUserSchema,
 } from "../validators/userSchema";
 const authRouter = Router();
@@ -19,9 +23,19 @@ authRouter.post(
 );
 authRouter.post("/login", validateRequest(loginUserSchema), loginController);
 authRouter.post(
-  "/verify-user",
+  "/verify-code",
   validateRequest(verifyUserSchema),
-  verifyUserRegistrationController
+  verifyCodeController
+);
+authRouter.post(
+  "/forgot-password",
+  validateRequest(initiateForgotPasswordSchema),
+  initiateForgotPasswordController
+);
+authRouter.post(
+  "/reset-password",
+  validateRequest(resetPasswordSchema),
+  resetPasswordController
 );
 
 export default authRouter;

@@ -55,11 +55,25 @@ export const loginUserSchema = z.object({
 });
 
 export const verifyUserSchema = z.object({
-  username: z
+  code: z
     .string()
     .trim()
     .transform((val) => validator.escape(val)), // escape HTML
-  code: z
+});
+
+export const initiateForgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .email("Invalid email")
+    .transform((val) => sanitizeEmail(val)),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z
+    .string()
+    .email("Invalid email")
+    .transform((val) => sanitizeEmail(val)),
+  password: z
     .string()
     .trim()
     .transform((val) => validator.escape(val)), // escape HTML

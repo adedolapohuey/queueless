@@ -19,6 +19,11 @@ export interface LoginData {
 }
 
 export interface VerificationData {
-  username: string;
-  code: string;
+  user: number;
+}
+
+export enum otpActionTypes {
+  EMAIL_VERIFICATION = "email_verification",
+  FORGOT_PASSWORD = "forgot_password",
+  DEFAULT = "",
 }

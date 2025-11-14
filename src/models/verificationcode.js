@@ -18,6 +18,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       user: DataTypes.STRING,
+      action: {
+        type: DataTypes.STRING,
+        defaultValue: "",
+      },
       isDeleted: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
