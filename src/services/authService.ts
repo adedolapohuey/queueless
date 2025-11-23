@@ -18,6 +18,7 @@ import { generateOtp } from "../helpers";
 import { VerificationCode } from "../models/verificationcode.model";
 import { Organization } from "../models/organization.model";
 import { orgSerializer } from "../serializers/organization.serializer";
+import e from "express";
 
 const registrationService = async (
   registrationPayload: RegistrationData
@@ -151,6 +152,7 @@ const verifyCode = async (payload: { code: string }): Promise<Response> => {
       return AppError.badRequest("Invalid or expired code");
     }
 
+    let data = {};
     switch (existingCode.action) {
       case otpActionTypes.EMAIL_VERIFICATION:
         return await verifyUserRegistration({
@@ -165,6 +167,15 @@ const verifyCode = async (payload: { code: string }): Promise<Response> => {
           where: { id: existingCode.user, isDeleted: false },
           attributes: ["email"],
         });
+        data = { email: userDetails?.email || "", entity: "user" };
+        break;
+      case otpActionTypes.ORG_FORGOT_PASSWORD:
+        const orgDetails = await Organization.findOne({
+          where: { id: existingCode.user, isActive: true },
+          attributes: ["email"],
+        });
+        data = { email: orgDetails?.email || "", entity: "organization" };
+        break;
       default:
         break;
     }
@@ -180,36 +191,55 @@ const verifyCode = async (payload: { code: string }): Promise<Response> => {
       }
     );
 
-    return ResponseHandler.success("OTP verified successfully");
+    return ResponseHandler.success("OTP verified successfully", data);
   } catch (error: any) {
     return AppError.internal();
   }
 };
 
-const initiateForgotPasswordService = async (
-  payload: Pick<RegistrationData, "email">
-) => {
+const initiateForgotPasswordService = async (payload: {
+  email: string;
+  entity: string;
+}) => {
   // Forgot password logic here
   console.log("initiate forgot password with data:", payload);
-  const { email } = payload;
+  const { email, entity } = payload;
 
   try {
-    const userExists = await User.findOne({
-      where: { email, isDeleted: false },
-      attributes: ["id", "firstName", "lastName"],
-    });
+    let user: User | Organization | null = null;
+    let name = "";
+    if (entity === "organization") {
+      user = await Organization.findOne({
+        where: { email, isActive: true },
+        attributes: ["id", "name"],
+      });
+      name = user?.name || "";
+    } else {
+      user = await User.findOne({
+        where: { email, isDeleted: false },
+        attributes: ["id", "firstName", "lastName"],
+      });
+      name = `${user?.firstName} ${user?.lastName}` || "";
+    }
 
-    if (!userExists) {
-      return AppError.notFound("User with this email does not exist");
+    if (!user) {
+      return AppError.notFound(
+        `${
+          entity === "organization" ? "Organization" : "User"
+        } with this email does not exist`
+      );
     }
 
     const code = await fetchValidCode(); // 6-digit OTP
 
     // save code to the db
     await VerificationCode.create({
-      user: userExists.id.toString(),
+      user: user.id.toString(),
       code,
-      action: otpActionTypes.FORGOT_PASSWORD,
+      action:
+        entity === "organization"
+          ? otpActionTypes.ORG_FORGOT_PASSWORD
+          : otpActionTypes.FORGOT_PASSWORD,
       expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
     });
 
@@ -219,7 +249,7 @@ const initiateForgotPasswordService = async (
       htmlTemplate: "forgotPassword.template",
       variables: {
         code,
-        name: userExists.firstName + " " + userExists.lastName,
+        name,
       },
     });
 
