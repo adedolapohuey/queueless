@@ -14,6 +14,20 @@ export interface FullRegistrationData extends RegistrationData {
   isDeleted: boolean;
 }
 
+export interface OrganizationData {
+  name: string;
+  email: string;
+  password: string;
+  description?: string;
+  domain?: string;
+}
+
+export interface FullOrganizationData extends OrganizationData {
+  id: number;
+  isActive: boolean;
+  isVerified: boolean;
+}
+
 export interface LoginData {
   username: string;
   password: string;

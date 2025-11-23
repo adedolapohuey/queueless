@@ -2,7 +2,9 @@ import { Router } from "express";
 import {
   initiateForgotPasswordController,
   loginController,
+  loginOrganizationController,
   registerController,
+  registerOrganizationController,
   resetPasswordController,
   verifyCodeController,
 } from "../controllers/authController";
@@ -14,6 +16,10 @@ import {
   resetPasswordSchema,
   verifyUserSchema,
 } from "../validators/userSchema";
+import {
+  createOrganizationSchema,
+  loginOrganizationSchema,
+} from "../validators/organizationSchema";
 const authRouter = Router();
 
 authRouter.post(
@@ -36,6 +42,18 @@ authRouter.post(
   "/reset-password",
   validateRequest(resetPasswordSchema),
   resetPasswordController
+);
+
+// organization routes
+authRouter.post(
+  "/org/register",
+  validateRequest(createOrganizationSchema),
+  registerOrganizationController
+);
+authRouter.post(
+  "/org/login",
+  validateRequest(loginOrganizationSchema),
+  loginOrganizationController
 );
 
 export default authRouter;

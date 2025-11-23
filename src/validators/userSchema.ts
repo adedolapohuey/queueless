@@ -39,6 +39,7 @@ export const createUserSchema = z.object({
 
   email: z
     .string()
+    .trim()
     .email("Invalid email")
     .transform((val) => sanitizeEmail(val)),
 });
@@ -64,6 +65,7 @@ export const verifyUserSchema = z.object({
 export const initiateForgotPasswordSchema = z.object({
   email: z
     .string()
+    .trim()
     .email("Invalid email")
     .transform((val) => sanitizeEmail(val)),
 });
@@ -71,6 +73,7 @@ export const initiateForgotPasswordSchema = z.object({
 export const resetPasswordSchema = z.object({
   email: z
     .string()
+    .trim()
     .email("Invalid email")
     .transform((val) => sanitizeEmail(val)),
   password: z

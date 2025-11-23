@@ -3,6 +3,7 @@ import { hashPassword, comparePassword } from "../helpers/hash";
 import { ResponseHandler } from "../helpers/responseHandler";
 import { generateToken } from "../helpers/tokenHandler";
 import {
+  OrganizationData,
   otpActionTypes,
   RegistrationData,
   Role,
@@ -15,6 +16,8 @@ import { userSerializer } from "../serializers/user.serializer";
 import { sendVerificationEmail } from "../helpers/sendMail";
 import { generateOtp } from "../helpers";
 import { VerificationCode } from "../models/verificationcode.model";
+import { Organization } from "../models/organization.model";
+import { orgSerializer } from "../serializers/organization.serializer";
 
 const registrationService = async (
   registrationPayload: RegistrationData
@@ -315,10 +318,124 @@ const verifyUserRegistration = async (
   }
 };
 
+const organizationRegistrationService = async (
+  registrationPayload: OrganizationData
+): Promise<Response> => {
+  // Organization Registration logic here
+  try {
+    console.log("Registering organization with data:", registrationPayload);
+    const { email, name, password, domain, description } = registrationPayload;
+
+    const organizationExists = await Organization.findOne({
+      where: { email, isActive: true },
+      attributes: ["id"],
+    });
+
+    if (organizationExists) {
+      return AppError.badRequest("Organization already exists");
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    // hash password
+    const hashedPassword = await hashPassword(password);
+
+    // Simulate organization creation
+    const newOrg = {
+      name,
+      email: cleanEmail,
+      domain,
+      description,
+      password: hashedPassword,
+    };
+    const createOrganization = await Organization.create(newOrg);
+
+    // send verification email logic can be added here
+    const code = await fetchValidCode(); // 6-digit OTP
+
+    // save code to the db
+    await VerificationCode.create({
+      org: createOrganization.id.toString(),
+      code,
+      action: otpActionTypes.EMAIL_VERIFICATION,
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
+    });
+
+    await sendVerificationEmail({
+      to: cleanEmail,
+      subject: "Verify your organization account",
+      htmlTemplate: "registration.template",
+      variables: { code, name },
+    });
+
+    // generate token
+    const token = generateToken(
+      {
+        email: newOrg.email,
+        name: newOrg.name,
+      },
+      "1d"
+    );
+
+    return ResponseHandler.created("Organization registered successfully", {
+      ...orgSerializer(createOrganization),
+      token,
+    });
+  } catch (error: any) {
+    return AppError.internal(error.message);
+  }
+};
+
+const organizationLoginService = async (payload: OrganizationData) => {
+  // Organization Login logic here
+  console.log("Login organization with data:", payload);
+  try {
+    const { email, password } = payload;
+    const orgExists = await Organization.findOne({
+      where: { email, isActive: true },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+    });
+
+    if (!orgExists) {
+      return AppError.unauthorized("Invalid credentials");
+    }
+
+    if (!orgExists.isVerified) {
+      return AppError.unauthorized(
+        "Kindly verify your organization account to proceed"
+      );
+    }
+
+    const verifyPassword = await comparePassword(password, orgExists.password);
+    if (!verifyPassword) {
+      return AppError.unauthorized("Invalid credentials");
+    }
+
+    // generate token
+    const token = generateToken(
+      {
+        email: orgExists.email,
+        name: orgExists.name,
+      },
+      "1d"
+    );
+
+    return ResponseHandler.success("Organization login successful", {
+      ...orgSerializer(orgExists),
+      token,
+    });
+  } catch (error: any) {
+    return AppError.internal();
+  }
+};
+
 export {
   registrationService,
   loginService,
   verifyCode,
   initiateForgotPasswordService,
   resetPasswordService,
+  organizationRegistrationService,
+  organizationLoginService,
 };

@@ -17,14 +17,19 @@ export async function sendVerificationEmail({
   htmlTemplate,
   variables,
 }: SendOpts) {
-  const html = renderTemplate(htmlTemplate, variables);
+  try {
+    const html = renderTemplate(htmlTemplate, variables);
 
-  const msg = {
-    to,
-    from: process.env.FROM_EMAIL!, // verified sender in SendGrid
-    subject,
-    html,
-  };
+    const msg = {
+      to,
+      from: process.env.FROM_EMAIL!, // verified sender in SendGrid
+      subject,
+      html,
+    };
 
-  await sgMail.send(msg);
+    const sent = await sgMail.send(msg);
+    console.log("Email sent:", sent);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
 }

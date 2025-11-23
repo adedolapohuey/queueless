@@ -2,11 +2,16 @@ import { Request, Response } from "express";
 import {
   initiateForgotPasswordService,
   loginService,
+  organizationLoginService,
+  organizationRegistrationService,
   registrationService,
   resetPasswordService,
   verifyCode,
 } from "../services/authService";
-import { RegistrationData } from "../interfaces/authInterface";
+import {
+  OrganizationData,
+  RegistrationData,
+} from "../interfaces/authInterface";
 
 const registerController = async (req: Request, res: Response) => {
   const data = req.body as RegistrationData;
@@ -41,10 +46,25 @@ const resetPasswordController = async (req: Request, res: Response) => {
   return res.status(status).json(result);
 };
 
+// organization controllers
+const registerOrganizationController = async (req: Request, res: Response) => {
+  const data = req.body as OrganizationData;
+  const { status, result } = await organizationRegistrationService(data);
+  return res.status(status).json(result);
+};
+
+const loginOrganizationController = async (req: Request, res: Response) => {
+  const data = req.body as OrganizationData;
+  const { status, result } = await organizationLoginService(data);
+  return res.status(status).json(result);
+};
+
 export {
   registerController,
   loginController,
   verifyCodeController,
   initiateForgotPasswordController,
   resetPasswordController,
+  registerOrganizationController,
+  loginOrganizationController,
 };
