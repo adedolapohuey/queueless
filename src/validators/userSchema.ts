@@ -68,6 +68,9 @@ export const initiateForgotPasswordSchema = z.object({
     .trim()
     .email("Invalid email")
     .transform((val) => sanitizeEmail(val)),
+  entity: z
+    .enum(["organization", "user"])
+    .transform((val) => sanitizeEmail(val)),
 });
 
 export const resetPasswordSchema = z.object({
@@ -80,6 +83,9 @@ export const resetPasswordSchema = z.object({
     .string()
     .trim()
     .transform((val) => validator.escape(val)), // escape HTML
+  entity: z
+    .enum(["organization", "user"])
+    .transform((val) => sanitizeEmail(val)),
 });
 
 // Type inference for TS

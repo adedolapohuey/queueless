@@ -41,7 +41,7 @@ const initiateForgotPasswordController = async (
 };
 
 const resetPasswordController = async (req: Request, res: Response) => {
-  const data = req.body as { email: string; password: string };
+  const data = req.body as { email: string; password: string; entity: string };
   const { status, result } = await resetPasswordService(data);
   return res.status(status).json(result);
 };

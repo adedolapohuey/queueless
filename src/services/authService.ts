@@ -261,15 +261,35 @@ const initiateForgotPasswordService = async (payload: {
   }
 };
 
-const resetPasswordService = async (
-  payload: Pick<RegistrationData, "email" | "password">
-) => {
+const resetPasswordService = async (payload: {
+  email: string;
+  password: string;
+  entity: string;
+}) => {
   // Reset password logic here
   console.log("reset password with data:", payload);
-  const { email, password } = payload;
+  const { email, password, entity } = payload;
 
   const hashedPassword = await hashPassword(password);
   try {
+    if (entity === "organization") {
+      const updateOrgPassword = await Organization.update(
+        { password: hashedPassword },
+        {
+          where: {
+            email,
+            isActive: true,
+          },
+        }
+      );
+
+      if (updateOrgPassword[0] === 0) {
+        return AppError.notFound("Organization with this email does not exist");
+      }
+
+      return ResponseHandler.success("Password reset successfully");
+    }
+
     const updatePassword = await User.update(
       { password: hashedPassword },
       {
