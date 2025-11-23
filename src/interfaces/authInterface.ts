@@ -39,6 +39,7 @@ export interface VerificationData {
 
 export enum otpActionTypes {
   EMAIL_VERIFICATION = "email_verification",
+  ORG_EMAIL_VERIFICATION = "org_email_verification",
   FORGOT_PASSWORD = "forgot_password",
   DEFAULT = "",
 }

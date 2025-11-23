@@ -151,6 +151,24 @@ const verifyCode = async (payload: { code: string }): Promise<Response> => {
       return AppError.badRequest("Invalid or expired code");
     }
 
+    switch (existingCode.action) {
+      case otpActionTypes.EMAIL_VERIFICATION:
+        return await verifyUserRegistration({
+          user: Number(existingCode.user),
+        });
+      case otpActionTypes.ORG_EMAIL_VERIFICATION:
+        return await verifyOrgRegistration({
+          user: Number(existingCode.user),
+        });
+      case otpActionTypes.FORGOT_PASSWORD:
+        const userDetails = await User.findOne({
+          where: { id: existingCode.user, isDeleted: false },
+          attributes: ["email"],
+        });
+      default:
+        break;
+    }
+
     // expire the code
     await VerificationCode.update(
       { isDeleted: true },
@@ -161,24 +179,6 @@ const verifyCode = async (payload: { code: string }): Promise<Response> => {
         },
       }
     );
-
-    switch (existingCode.action) {
-      case otpActionTypes.EMAIL_VERIFICATION:
-        return await verifyUserRegistration({
-          user: Number(existingCode.user),
-        });
-      case otpActionTypes.FORGOT_PASSWORD:
-        const userDetails = await User.findOne({
-          where: { id: existingCode.user, isDeleted: false },
-          attributes: ["email"],
-        });
-
-        return ResponseHandler.success("OTP verified successfully", {
-          userEmail: userDetails!.email,
-        });
-      default:
-        break;
-    }
 
     return ResponseHandler.success("OTP verified successfully");
   } catch (error: any) {
@@ -318,6 +318,29 @@ const verifyUserRegistration = async (
   }
 };
 
+const verifyOrgRegistration = async (
+  payload: VerificationData
+): Promise<Response> => {
+  // Verification logic here
+  console.log("verifyOrgRegistration org with data:", payload);
+  const { user } = payload;
+
+  try {
+    await Organization.update(
+      { isVerified: true },
+      {
+        where: {
+          id: user,
+        },
+      }
+    );
+
+    return ResponseHandler.success("Organization verified successfully");
+  } catch (error: any) {
+    return AppError.internal();
+  }
+};
+
 const organizationRegistrationService = async (
   registrationPayload: OrganizationData
 ): Promise<Response> => {
@@ -354,9 +377,9 @@ const organizationRegistrationService = async (
 
     // save code to the db
     await VerificationCode.create({
-      org: createOrganization.id.toString(),
+      user: createOrganization.id.toString(),
       code,
-      action: otpActionTypes.EMAIL_VERIFICATION,
+      action: otpActionTypes.ORG_EMAIL_VERIFICATION,
       expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
     });
 
