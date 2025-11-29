@@ -75,7 +75,7 @@ const registrationService = async (
     // generate token
     const token = generateToken(
       {
-        email: newUser.email,
+        userId: createUser.id,
         username: newUser.username,
       },
       "1d"
@@ -120,7 +120,7 @@ const loginService = async (
     // generate token
     const token = generateToken(
       {
-        email: userExists.email,
+        userId: userExists.id,
         username: userExists.username,
       },
       "1d"
@@ -443,7 +443,7 @@ const organizationRegistrationService = async (
     // generate token
     const token = generateToken(
       {
-        email: newOrg.email,
+        orgId: createOrganization.id,
         name: newOrg.name,
       },
       "1d"
@@ -458,7 +458,9 @@ const organizationRegistrationService = async (
   }
 };
 
-const organizationLoginService = async (payload: OrganizationData) => {
+const organizationLoginService = async (
+  payload: OrganizationData
+): Promise<Response> => {
   // Organization Login logic here
   console.log("Login organization with data:", payload);
   try {
@@ -488,7 +490,7 @@ const organizationLoginService = async (payload: OrganizationData) => {
     // generate token
     const token = generateToken(
       {
-        email: orgExists.email,
+        orgId: orgExists.id,
         name: orgExists.name,
       },
       "1d"

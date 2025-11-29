@@ -3,6 +3,7 @@ import { User } from "../models/user.model";
 
 export function userSerializer(user: User) {
   return {
+    userId: user.id,
     username: user.username,
     firstName: user.firstName,
     lastName: user.lastName,

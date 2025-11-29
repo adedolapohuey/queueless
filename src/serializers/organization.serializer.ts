@@ -3,6 +3,7 @@ import { Organization } from "../models/organization.model";
 
 export function orgSerializer(org: Organization) {
   return {
+    orgId: org.id,
     name: org.name,
     email: org.email,
     description: org.description,

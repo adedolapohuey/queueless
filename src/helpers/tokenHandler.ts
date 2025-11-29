@@ -11,7 +11,7 @@ export const generateToken = (
   return sign(payload, JSON_SECRET as string, { expiresIn } as SignOptions);
 };
 
-export const verifyToken = (token: string, secret: string) => {
+export const verifyToken = (token: string) => {
   try {
     return verify(token, JSON_SECRET as string);
   } catch (error) {
