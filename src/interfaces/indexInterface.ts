@@ -6,4 +6,10 @@ export type Response = {
     data?: Record<string, any>;
     errors?: Record<string, string>;
   };
+};
+
+export interface queryInterface {
+  query: string;
+  page: number;
+  perPage: number;
 }
