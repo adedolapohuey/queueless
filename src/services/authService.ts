@@ -505,6 +505,52 @@ const organizationLoginService = async (
   }
 };
 
+const profileService = async (payload: { userId: number }) => {
+  // Profile logic here
+  console.log("profile with data:", payload);
+  const { userId } = payload;
+
+  try {
+    const userDetails = await User.findOne({
+      where: { id: userId, isDeleted: false },
+      attributes: { exclude: ["password", "createdAt", "updatedAt"] },
+    });
+
+    if (!userDetails) {
+      return AppError.notFound("User does not exist");
+    }
+
+    return ResponseHandler.success("User profile fetched", {
+      ...userSerializer(userDetails),
+    });
+  } catch (error: any) {
+    return AppError.internal();
+  }
+};
+
+const orgProfileService = async (payload: { orgId: number }) => {
+  // Organization Profile logic here
+  console.log("organization profile with data:", payload);
+  const { orgId } = payload;
+
+  try {
+    const orgDetails = await Organization.findOne({
+      where: { id: orgId, isActive: true },
+      attributes: { exclude: ["password", "createdAt", "updatedAt"] },
+    });
+
+    if (!orgDetails) {
+      return AppError.notFound("Organization does not exist");
+    }
+
+    return ResponseHandler.success("Organization profile fetched", {
+      ...orgSerializer(orgDetails),
+    });
+  } catch (error: any) {
+    return AppError.internal();
+  }
+};
+
 export {
   registrationService,
   loginService,
@@ -513,4 +559,6 @@ export {
   resetPasswordService,
   organizationRegistrationService,
   organizationLoginService,
+  profileService,
+  orgProfileService,
 };

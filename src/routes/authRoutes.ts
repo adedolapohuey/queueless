@@ -3,6 +3,8 @@ import {
   initiateForgotPasswordController,
   loginController,
   loginOrganizationController,
+  orgProfileController,
+  profileController,
   registerController,
   registerOrganizationController,
   resetPasswordController,

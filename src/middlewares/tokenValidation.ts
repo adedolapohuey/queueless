@@ -48,8 +48,11 @@ export const verifyOrgAccess = (
   next: NextFunction
 ) => {
   try {
-    const orgId = req.body.orgId; // coming from URL
+    const orgId = req.body?.orgId ?? req.query?.orgId; // coming from URL
 
+    if (!orgId) {
+      return res.status(403).json({ message: "Unauthorized user access" });
+    }
     // Compare route orgId with token orgId
     if (parseInt(orgId, 10) !== req.user!.orgId) {
       return res
@@ -57,7 +60,10 @@ export const verifyOrgAccess = (
         .json({ message: "Unauthorized organization access" });
     }
     next();
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+    return res.status(403).json({ message: "Unauthorized Org access" });
+  }
 };
 
 export const verifyUserAccess = (
@@ -66,10 +72,19 @@ export const verifyUserAccess = (
   next: NextFunction
 ) => {
   try {
-    if (!req.user!.userId) {
+    const userId = req.body?.userId ?? req.query?.userId; // coming from URL
+
+    if (!userId) {
+      return res.status(403).json({ message: "Unauthorized user access" });
+    }
+
+    if (parseInt(userId, 10) !== req.user!.userId) {
       return res.status(403).json({ message: "Unauthorized user access" });
     }
 
     next();
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+    return res.status(403).json({ message: "Unauthorized user access" });
+  }
 };
