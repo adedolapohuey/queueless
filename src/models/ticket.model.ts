@@ -1,12 +1,20 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../config/database";
+import { TicketData } from "../interfaces/queueInterface";
+import { User } from "./user.model";
 
-export class Ticket extends Model {
+type TicketCreationAttributes = Optional<TicketData, "id" | "appointmentTime">;
+export class Ticket
+  extends Model<TicketData, TicketCreationAttributes>
+  implements TicketData
+{
   public id!: number;
   public queueId!: number;
-  public organizationId!: number;
+  public ticketNumber!: string;
+  public orgId!: number;
   public userId!: number;
-  public status!: "WAITING" | "SERVED";
+  public status!: "pending" | "completed" | "cancelled";
+  declare user?: User;
 }
 
 Ticket.init(
@@ -18,7 +26,7 @@ Ticket.init(
     },
     queueId: { type: DataTypes.INTEGER, allowNull: false },
     userId: { type: DataTypes.INTEGER, allowNull: false },
-    organizationId: { type: DataTypes.INTEGER, allowNull: false },
+    orgId: { type: DataTypes.INTEGER, allowNull: false },
     status: {
       type: DataTypes.ENUM("pending", "completed", "cancelled"),
       allowNull: false,

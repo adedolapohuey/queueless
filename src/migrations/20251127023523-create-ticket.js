@@ -18,11 +18,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      organizationId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      userId: {
+      orgId: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },

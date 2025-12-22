@@ -29,7 +29,8 @@ export const createUserSchema = z.object({
     .string()
     .trim()
     .max(100, "Organization name too long")
-    .transform((val) => validator.escape(val)), // escape HTML
+    .transform((val) => validator.escape(val)) // escape HTML
+    .optional(),
   password: z
     .string()
     .trim()

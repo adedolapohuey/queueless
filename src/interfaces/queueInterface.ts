@@ -12,3 +12,16 @@ export interface QueueData extends QueueInterface {
 export interface QueueQueryInterface extends QueueData {
   queueId?: number;
 }
+
+export interface TicketInterface {
+  ticketNumber: string;
+  queueId: number;
+  orgId: number;
+  userId: number;
+  status: "pending" | "completed" | "cancelled";
+}
+
+export interface TicketData extends TicketInterface {
+  id: number;
+  appointmentTime?: Date;
+}

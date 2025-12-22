@@ -2,14 +2,19 @@ import { queryInterface, Response } from "../interfaces/indexInterface";
 import {
   QueueInterface,
   QueueQueryInterface,
+  TicketInterface,
 } from "../interfaces/queueInterface";
 import { Organization } from "../models/organization.model";
 import { AppError } from "../helpers/appError";
 import { ResponseHandler } from "../helpers/responseHandler";
-import { queueSerializer } from "../serializers/queue.serializer";
+import {
+  queueSerializer,
+  ticketsSerializer,
+} from "../serializers/queue.serializer";
 import { Queue } from "../models/queue.model";
 import { defaults } from "../helpers";
 import { Op } from "sequelize";
+import { User, Ticket } from "../models/association";
 
 const createQueueService = async (
   payload: QueueInterface
@@ -132,7 +137,6 @@ const updateOrgQueuesService = async (
   payload: QueueQueryInterface
 ): Promise<Response> => {
   try {
-    console.log("payload", payload);
     const { queueId, orgId, ...restOfPayload } = payload;
 
     await Queue.update(restOfPayload, {
@@ -150,9 +154,125 @@ const updateOrgQueuesService = async (
   }
 };
 
+const joinQueueService = async (
+  payload: Pick<TicketInterface, "queueId" | "orgId" | "userId">
+): Promise<Response> => {
+  try {
+    const { queueId, orgId, userId } = payload;
+
+    const queue = await Queue.findOne({
+      where: {
+        id: queueId,
+        orgId,
+        isDeleted: false,
+      },
+      attributes: ["id", "name", "estimatedInterval"],
+    });
+
+    if (!queue) return AppError.notFound("Queue not found");
+
+    // check that user is not already in the queue
+    const existingTicket = await Ticket.findOne({
+      where: {
+        queueId,
+        orgId,
+        userId,
+        status: "pending",
+      },
+      attributes: ["id"],
+    });
+
+    if (existingTicket)
+      return AppError.badRequest("User is already in the queue");
+
+    // Implementation for joining a queue will go here
+    const ticketNumber = await generateTicketNumber(queue.name);
+
+    const ticket = await Ticket.create({
+      ticketNumber,
+      queueId: queue.id,
+      userId,
+      orgId,
+      status: "pending",
+    });
+
+    return ResponseHandler.success(
+      "Joined queue successfully",
+      ticketsSerializer(ticket)
+    );
+  } catch (error) {
+    console.log("error", error);
+    return AppError.internal();
+  }
+};
+
+const fetchQueueUsersService = async (
+  payload: Pick<TicketInterface, "queueId" | "orgId">
+): Promise<Response> => {
+  try {
+    const { queueId, orgId } = payload;
+
+    const tickets = await Ticket.findAll({
+      where: {
+        queueId,
+        orgId,
+        status: "pending",
+      },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["firstName", "lastName", "email"],
+        },
+      ],
+    });
+
+    console.log("tickets", tickets[0].user);
+
+    if (tickets.length === 0)
+      return ResponseHandler.success("No users in queue");
+
+    return ResponseHandler.success(
+      "Queue users fetched successfully",
+      tickets.map((ticket) => ticketsSerializer(ticket))
+    );
+  } catch (error) {
+    console.log("error", error);
+    return AppError.internal();
+  }
+};
+
+const generateTicketNumber = async (queueName: string): Promise<string> => {
+  // structure for ticket number
+  // first three letters of queue name + date + random 4 digit number
+  const orgPrefix = queueName.replace(/\s+/g, "").slice(0, 3).toUpperCase();
+  const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const randomPart = Math.floor(1000 + Math.random() * 9000).toString();
+  const ticketNumber = `${orgPrefix}${datePart}${randomPart}`;
+
+  // check if number exists in database
+  // if exists, recursively generate a new one
+  // else, return the ticket number
+  const checkTicketExists = await Ticket.findOne({
+    where: {
+      ticketNumber,
+      status: "pending",
+    },
+    attributes: ["id"],
+  });
+
+  if (checkTicketExists) {
+    return generateTicketNumber(queueName);
+  }
+
+  return ticketNumber;
+};
+
 export {
   createQueueService,
   fetchAllQueuesService,
   fetchOrgQueuesService,
   updateOrgQueuesService,
+  joinQueueService,
+  fetchQueueUsersService,
 };
